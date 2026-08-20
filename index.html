@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f766e" />
+  <meta name="description" content="Miqdaar — Faraid & Zakat Islamic Calculator. Simple, evidence-based Zakat and Islamic inheritance calculations with Quran, Hadith and madhhab-aware rules. Not a fatwa service." />
+  <meta name="keywords" content="Zakat calculator, Faraid calculator, Islamic inheritance, Warasat, miqdaar, zakat, faraid, nisab, hawl, madhhab" />
+  <meta name="robots" content="index, follow" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://miqdaar.online/" />
+  <meta property="og:title" content="Miqdaar — Faraid & Zakat Islamic Calculator" />
+  <meta property="og:description" content="Simple calculations. Clear evidence. Respect for every madhhab." />
+  <meta property="og:image" content="https://miqdaar.online/icons/logo.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/png" href="/icons/favicon.png" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Miqdaar" />
+  <title>Miqdaar — Faraid & Zakat Islamic Calculator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {50:'#f0fdfa',100:'#ccfbf1',200:'#99f6e4',300:'#5eead4',400:'#2dd4bf',500:'#14b8a6',600:'#0d9488',700:'#0f766e',800:'#115e59',900:'#134e4a'},
+            gold: {400:'#fbbf24',500:'#f59e0b',600:'#d97706'}
+          },
+          fontFamily: {
+            sans: ['Inter','system-ui','sans-serif'],
+            arabic: ['Amiri','Noto Naskh Arabic','serif']
+          },
+          maxWidth: { 'app': '42rem', 'desktop': '72rem' }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/app.css" />
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
+  <div id="app" class="min-h-screen flex flex-col">
+    <header id="header" class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
+      <div class="max-w-desktop mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
+        <a href="#/" class="flex items-center gap-2 sm:gap-3 font-semibold text-primary-700">
+          <img src="/icons/logo.png" alt="Miqdaar" class="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover shadow-sm border border-primary-100" />
+          <div class="leading-tight">
+            <span class="text-base sm:text-lg">Miqdaar</span>
+            <span class="hidden sm:block text-[10px] font-normal text-slate-500">مقدار · Faraid & Zakat</span>
+          </div>
+        </a>
+        <div class="flex items-center gap-1 sm:gap-2">
+          <button id="lang-btn" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-100 text-xs sm:text-sm font-medium" aria-label="Language">EN</button>
+          <button id="chat-btn" class="p-2 rounded-lg hover:bg-primary-50 text-primary-700" aria-label="Ask assistant" title="Ask Islamic Calculator">
+            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          </button>
+          <button id="menu-btn" class="p-2 rounded-lg hover:bg-slate-100 lg:hidden" aria-label="Menu">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex flex-1 max-w-desktop mx-auto w-full">
+      <aside class="hidden lg:flex flex-col w-56 shrink-0 border-r border-slate-200 bg-white py-4 sticky top-16 h-[calc(100vh-4rem)]">
+        <nav class="flex-1 px-3 space-y-1">
+          <a href="#/" class="side-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-50 text-slate-700" data-nav="home"><span class="text-lg">🏠</span> Home</a>
+          <a href="#/zakat" class="side-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-50 text-slate-700" data-nav="zakat"><span class="text-lg">💰</span> Zakat</a>
+          <a href="#/warasat" class="side-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-50 text-slate-700" data-nav="warasat"><span class="text-lg">📜</span> Warasat / Faraid</a>
+          <a href="#/evidence" class="side-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-50 text-slate-700" data-nav="evidence"><span class="text-lg">📖</span> Quran & Hadith</a>
+          <a href="#/learn" class="side-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-50 text-slate-700" data-nav="learn"><span class="text-lg">🎓</span> Learn</a>
+          <a href="#/glossary" class="side-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-50 text-slate-700" data-nav="glossary"><span class="text-lg">📚</span> Glossary</a>
+          <a href="#/history" class="side-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-50 text-slate-700" data-nav="history"><span class="text-lg">📋</span> History</a>
+          <a href="#/settings" class="side-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-50 text-slate-700" data-nav="settings"><span class="text-lg">⚙️</span> Settings</a>
+        </nav>
+        <div class="px-4 pt-3 border-t text-[10px] text-slate-400">Rules v1.0 · Not a fatwa</div>
+      </aside>
+
+      <main id="main" class="flex-1 w-full px-4 sm:px-6 py-4 sm:py-6 pb-24 lg:pb-8 max-w-app lg:max-w-none mx-auto lg:mx-0"></main>
+    </div>
+
+    <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40 safe-area-bottom lg:hidden">
+      <div class="app-shell mx-auto grid grid-cols-5 h-16">
+        <a href="#/" data-nav="home" class="nav-item flex flex-col items-center justify-center text-[10px] sm:text-xs gap-0.5 text-primary-700"><span class="text-xl">🏠</span><span>Home</span></a>
+        <a href="#/zakat" data-nav="zakat" class="nav-item flex flex-col items-center justify-center text-[10px] sm:text-xs gap-0.5 text-slate-500"><span class="text-xl">💰</span><span>Zakat</span></a>
+        <a href="#/warasat" data-nav="warasat" class="nav-item flex flex-col items-center justify-center text-[10px] sm:text-xs gap-0.5 text-slate-500"><span class="text-xl">📜</span><span>Warasat</span></a>
+        <a href="#/evidence" data-nav="evidence" class="nav-item flex flex-col items-center justify-center text-[10px] sm:text-xs gap-0.5 text-slate-500"><span class="text-xl">📖</span><span>Evidence</span></a>
+        <a href="#/more" data-nav="more" class="nav-item flex flex-col items-center justify-center text-[10px] sm:text-xs gap-0.5 text-slate-500"><span class="text-xl">☰</span><span>More</span></a>
+      </div>
+    </nav>
+  </div>
+
+  <div id="side-menu" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" id="menu-backdrop"></div>
+    <div class="absolute right-0 top-0 bottom-0 w-72 max-w-[85vw] bg-white shadow-xl flex flex-col">
+      <div class="p-4 border-b flex items-center gap-3">
+        <img src="/icons/logo.png" alt="" class="w-10 h-10 rounded-full object-cover" />
+        <span class="font-semibold text-primary-700">Miqdaar</span>
+        <button id="menu-close" class="ml-auto p-2 rounded-lg hover:bg-slate-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <nav class="flex-1 overflow-y-auto p-2">
+        <a href="#/" class="menu-link block px-4 py-3 rounded-lg hover:bg-slate-50">🏠 Home</a>
+        <a href="#/zakat" class="menu-link block px-4 py-3 rounded-lg hover:bg-slate-50">💰 Zakat Calculator</a>
+        <a href="#/warasat" class="menu-link block px-4 py-3 rounded-lg hover:bg-slate-50">📜 Warasat / Faraid</a>
+        <a href="#/evidence" class="menu-link block px-4 py-3 rounded-lg hover:bg-slate-50">📖 Quran & Hadith</a>
+        <a href="#/learn" class="menu-link block px-4 py-3 rounded-lg hover:bg-slate-50">🎓 Learning Center</a>
+        <a href="#/glossary" class="menu-link block px-4 py-3 rounded-lg hover:bg-slate-50">📚 Glossary</a>
+        <a href="#/history" class="menu-link block px-4 py-3 rounded-lg hover:bg-slate-50">📋 History</a>
+        <a href="#/settings" class="menu-link block px-4 py-3 rounded-lg hover:bg-slate-50">⚙️ Settings</a>
+        <a href="#/disclaimer" class="menu-link block px-4 py-3 rounded-lg hover:bg-slate-50">⚠️ Disclaimer</a>
+      </nav>
+      <div class="p-4 border-t text-xs text-slate-500">Rules v1.0 · Educational tool — not a fatwa</div>
+    </div>
+  </div>
+
+  <div id="chat-panel" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" id="chat-backdrop"></div>
+    <div class="absolute bottom-0 right-0 left-0 sm:left-auto sm:right-4 sm:bottom-4 sm:w-[400px] sm:max-h-[70vh] sm:rounded-2xl bg-white shadow-2xl flex flex-col max-h-[85vh] border border-slate-200">
+      <div class="p-4 border-b flex items-center gap-3 bg-primary-700 text-white sm:rounded-t-2xl">
+        <span class="text-xl">💬</span>
+        <div class="flex-1">
+          <div class="font-semibold text-sm">Ask Islamic Calculator</div>
+          <div class="text-[10px] opacity-80">Explains results & evidence · Not a fatwa</div>
+        </div>
+        <button id="chat-close" class="p-1.5 rounded-lg hover:bg-white/20">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3 min-h-[200px] max-h-[50vh]">
+        <div class="text-sm text-slate-600 bg-slate-50 rounded-xl p-3">
+          Assalamu alaikum. I can explain Zakat concepts, inheritance shares, and the evidence used in your calculations. I do <strong>not</strong> issue fatwas or invent rulings.
+        </div>
+      </div>
+      <div class="p-3 border-t flex gap-2">
+        <input id="chat-input" type="text" class="input-field flex-1 text-sm py-2.5" placeholder="Ask about Zakat, Faraid, evidence..." />
+        <button id="chat-send" class="btn-primary px-4 py-2.5 w-auto shrink-0">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+    }
+  </script>
+
+  <!-- Chatbot -->
+  <button id="chat-fab" class="chat-fab no-print" aria-label="Ask Islamic Calculator" title="Ask about Zakat & Faraid">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+  </button>
+  <div id="chat-panel" class="chat-panel no-print hidden">
+    <div class="p-3 border-b flex items-center justify-between bg-primary-700 text-white">
+      <span class="font-semibold text-sm">Ask Miqdaar</span>
+      <button id="chat-close" class="p-1 rounded hover:bg-white/20">✕</button>
+    </div>
+    <div id="chat-messages" class="chat-messages">
+      <div class="chat-bubble-bot">Assalamu alaikum. I can explain Zakat, Faraid concepts and your calculated results using verified evidence only. I do not issue fatwas or invent rules.</div>
+    </div>
+    <div class="p-2 border-t flex gap-2">
+      <input id="chat-input" type="text" class="input-field text-sm" placeholder="Ask about Zakat or inheritance..." />
+      <button id="chat-send" class="btn-primary px-4 py-2 w-auto text-sm">Send</button>
+    </div>
+  </div>
+
+</body>
+</html>
