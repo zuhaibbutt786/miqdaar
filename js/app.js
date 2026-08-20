@@ -289,6 +289,13 @@ function renderZakatPage(el) {
           <p class="text-xs text-slate-500">Methodology: <strong>${m}</strong> · <a href="#/madhhab" class="text-primary-700 underline">Change</a></p>
         </div>
       </div>
+      <div class="card p-3">
+        <p class="text-xs text-slate-500 mb-2">Name on PDF (optional)</p>
+        <div class="calc-grid">
+          <div><select id="z-title" class="select-field text-sm py-2"><option value="">Title</option><option>Mr</option><option>Mrs</option><option>Ms</option><option>Sir</option><option>Qari</option><option>Hafiz</option><option>Dr</option></select></div>
+          <div><input type="text" id="z-name" class="input-field text-sm py-2" placeholder="Full name" /></div>
+        </div>
+      </div>
 
       <div class="card p-4 space-y-3">
         <h3 class="font-semibold text-primary-800">💵 Cash & Liquidity</h3>
@@ -405,6 +412,8 @@ function renderZakatPage(el) {
     const input = {
       methodology: state.madhhab || 'general',
       currency: state.currency,
+      reportTitle: document.getElementById('z-title')?.value || '',
+      reportName: document.getElementById('z-name')?.value?.trim() || '',
       cashAtHome: num('z-cash-home'), bankAccounts: num('z-bank'), mobileWallets: num('z-wallets'),
       foreignCurrency: num('z-fx'), receivables: num('z-recv'),
       gold: {
@@ -449,7 +458,9 @@ function renderZakatPage(el) {
         ${(result.warnings||[]).map(w => `<div class="badge-warning text-left">${w.message}</div>`).join('')}
         ${(result.assumptions||[]).map(a => `<p class="text-xs text-slate-500">• ${a}</p>`).join('')}
         <div class="text-xs text-slate-500 bg-slate-50 rounded-lg p-3">${DISCLAIMER.en}</div>
+        <button type="button" id="z-pdf" class="btn-secondary mt-3">Download / Print PDF</button>
       </div>`;
+    document.getElementById('z-pdf')?.addEventListener('click', () => openZakatPdf(result, input));
     saveHistory({ type: 'zakat', result, input });
     box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   });
@@ -525,6 +536,17 @@ function renderWarasatPage(el) {
             <select id="w-father" class="select-field"><option value="false">No</option><option value="true">Yes</option></select></div>
           <div><label class="text-xs text-slate-500">Mother alive?</label>
             <select id="w-mother" class="select-field"><option value="false">No</option><option value="true">Yes</option></select></div>
+        </div>
+        <div class="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+          <label class="text-xs font-medium text-slate-600">Heir names (optional — for report/PDF)</label>
+          <div class="calc-grid mt-2">
+            <div><label class="text-[10px] text-slate-400">Husband name</label><input type="text" id="w-name-husband" class="input-field text-sm py-2" placeholder="Optional" /></div>
+            <div><label class="text-[10px] text-slate-400">Wife name(s)</label><input type="text" id="w-name-wives" class="input-field text-sm py-2" placeholder="Optional" /></div>
+            <div><label class="text-[10px] text-slate-400">Father name</label><input type="text" id="w-name-father" class="input-field text-sm py-2" placeholder="Optional" /></div>
+            <div><label class="text-[10px] text-slate-400">Mother name</label><input type="text" id="w-name-mother" class="input-field text-sm py-2" placeholder="Optional" /></div>
+            <div><label class="text-[10px] text-slate-400">Son name(s)</label><input type="text" id="w-name-sons" class="input-field text-sm py-2" placeholder="e.g. Ali, Omar" /></div>
+            <div><label class="text-[10px] text-slate-400">Daughter name(s)</label><input type="text" id="w-name-daughters" class="input-field text-sm py-2" placeholder="e.g. Fatima, Aisha" /></div>
+          </div>
         </div>
         <details class="mt-2">
           <summary class="cursor-pointer text-sm font-medium text-primary-700">Siblings & more (optional)</summary>
@@ -621,6 +643,14 @@ function renderWarasatPage(el) {
         paternalSisters: intv('w-ps'),
         maternalBrothers: intv('w-mb'),
         maternalSisters: intv('w-ms')
+      },
+      heirNames: {
+        husband: document.getElementById('w-name-husband')?.value?.trim() || '',
+        wives: document.getElementById('w-name-wives')?.value?.trim() || '',
+        father: document.getElementById('w-name-father')?.value?.trim() || '',
+        mother: document.getElementById('w-name-mother')?.value?.trim() || '',
+        sons: document.getElementById('w-name-sons')?.value?.trim() || '',
+        daughters: document.getElementById('w-name-daughters')?.value?.trim() || ''
       }
     };
     const result = calculateInheritance(input);
@@ -652,20 +682,25 @@ function renderWarasatPage(el) {
           ${displayName ? `<div class="font-medium mt-1">Prepared for: ${displayName}</div>` : ''}
           <div class="text-sm text-slate-500 mt-1">Net Estate: <strong>${fmt(result.netEstate)} ${state.currency}</strong> · ${MADHHAB_LABELS[result.methodology]?.en || result.methodology}</div>
         </div>
-        ${result.shares.map(s => `
+        ${result.shares.map(s => {
+          const label = labelHeir(s, input.heirNames);
+          const ind = s.individualAmount != null && s.count > 1 ? `<div class="text-xs text-slate-500">Each: ${fmt(s.individualAmount)} ${state.currency}</div>` : '';
+          return `
           <div class="card p-4">
             <div class="flex justify-between items-start gap-2">
               <div>
-                <div class="font-semibold">${s.heir}</div>
+                <div class="font-semibold">${label}</div>
                 <div class="text-sm text-primary-700 font-medium">${fracStr(s.fraction)}${s.percentage != null ? ' · ' + s.percentage + '%' : ''}</div>
+                ${ind}
               </div>
               <div class="text-right font-bold text-lg shrink-0">${fmt(s.amount)} ${state.currency}</div>
             </div>
             <details class="mt-2">
               <summary class="cursor-pointer text-xs font-medium text-primary-700">Why this share?</summary>
-              <p class="text-xs text-slate-600 mt-1 leading-relaxed">${s.reason || ''}${s.evidence ? ' · Evidence: ' + s.evidence : ''}</p>
+              <p class="text-xs text-slate-600 mt-1 leading-relaxed">${s.reason || ''}${s.evidence ? ' · Evidence: Quran ' + s.evidence : ''}</p>
             </details>
-          </div>`).join('')}
+          </div>`;
+        }).join('')}
         ${(result.excluded||[]).length ? `<div class="card p-4"><div class="text-sm font-medium mb-1">Excluded (ḥajb)</div>
           ${result.excluded.map(e => `<p class="text-xs text-slate-600">• ${e.heir}: ${e.reason}</p>`).join('')}</div>` : ''}
         ${(result.notes||[]).map(n => `<p class="text-xs text-amber-800 bg-amber-50 rounded-lg p-3">${n}</p>`).join('')}
@@ -690,6 +725,22 @@ function renderWarasatPage(el) {
   });
 }
 
+
+function labelHeir(s, names) {
+  names = names || {};
+  const role = (s.role || '').toLowerCase();
+  const heir = (s.heir || '').toLowerCase();
+  let n = '';
+  if (role === 'son' || heir.startsWith('son')) n = names.sons;
+  else if (role === 'daughter' || heir.startsWith('daughter')) n = names.daughters;
+  else if (heir.includes('husband')) n = names.husband;
+  else if (heir.includes('wife')) n = names.wives;
+  else if (heir.includes('father')) n = names.father;
+  else if (heir.includes('mother')) n = names.mother;
+  if (n) return `${s.heir} — ${n}`;
+  return s.heir;
+}
+
 function openWarasatPdf(result, input, currency) {
   const fmt = n => n.toLocaleString(undefined, { maximumFractionDigits: 2 });
   const fracStr = f => {
@@ -703,13 +754,47 @@ function openWarasatPdf(result, input, currency) {
     return (f * 100).toFixed(1) + '%';
   };
   const displayName = [input.reportTitle, input.reportName].filter(Boolean).join(' ') || '—';
-  const rows = (result.shares || []).map(s => `
-    <tr>
-      <td style="padding:8px;border:1px solid #e2e8f0;">${s.heir}</td>
-      <td style="padding:8px;border:1px solid #e2e8f0;">${fracStr(s.fraction)}</td>
-      <td style="padding:8px;border:1px solid #e2e8f0;text-align:right;">${fmt(s.amount)} ${currency}</td>
+  const names = input.heirNames || {};
+  const h = input.heirs || {};
+
+  // Hierarchical tree nodes
+  const treeNodes = [];
+  if (h.husbands) treeNodes.push({ level: 1, label: 'Husband', name: names.husband || '', emoji: '👨' });
+  if (h.wives) treeNodes.push({ level: 1, label: h.wives === 1 ? 'Wife' : `Wives ×${h.wives}`, name: names.wives || '', emoji: '👩' });
+  if (h.father) treeNodes.push({ level: 0, label: 'Father', name: names.father || '', emoji: '👴' });
+  if (h.mother) treeNodes.push({ level: 0, label: 'Mother', name: names.mother || '', emoji: '👵' });
+  if (h.sons) treeNodes.push({ level: 2, label: h.sons === 1 ? 'Son' : `Sons ×${h.sons}`, name: names.sons || '', emoji: '👦', note: '2× daughter share' });
+  if (h.daughters) treeNodes.push({ level: 2, label: h.daughters === 1 ? 'Daughter' : `Daughters ×${h.daughters}`, name: names.daughters || '', emoji: '👧', note: '½ of son share' });
+  if (h.fullBrothers) treeNodes.push({ level: 3, label: `Full brothers ×${h.fullBrothers}`, name: '', emoji: '🧔' });
+  if (h.fullSisters) treeNodes.push({ level: 3, label: `Full sisters ×${h.fullSisters}`, name: '', emoji: '🧕' });
+
+  const treeHtml = `
+    <div style="margin:16px 0;padding:12px;border:1px solid #99f6e4;border-radius:12px;background:#f0fdfa;">
+      <div style="text-align:center;font-weight:700;color:#0f766e;margin-bottom:10px;">Family tree (surviving heirs)</div>
+      <div style="text-align:center;font-size:12px;color:#64748b;margin-bottom:8px;">Deceased</div>
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;">
+        ${treeNodes.map(n => `
+          <div style="min-width:100px;padding:8px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;text-align:center;">
+            <div style="font-size:18px;">${n.emoji}</div>
+            <div style="font-weight:600;font-size:12px;">${n.label}</div>
+            ${n.name ? `<div style="font-size:11px;color:#0f766e;">${n.name}</div>` : ''}
+            ${n.note ? `<div style="font-size:9px;color:#b45309;margin-top:2px;">${n.note}</div>` : ''}
+          </div>`).join('')}
+      </div>
+      <p style="font-size:10px;color:#64748b;margin:10px 0 0;text-align:center;">Quran 4:11: for children, a male receives a share equal to that of two females.</p>
+    </div>`;
+
+  const rows = (result.shares || []).map(s => {
+    const label = labelHeir(s, names);
+    const ind = s.individualAmount != null && s.count > 1 ? `<br><span style="color:#64748b;font-size:10px;">Each: ${fmt(s.individualAmount)} ${currency}</span>` : '';
+    return `<tr>
+      <td style="padding:8px;border:1px solid #e2e8f0;">${label}</td>
+      <td style="padding:8px;border:1px solid #e2e8f0;">${fracStr(s.fraction)}${s.percentage != null ? ' ('+s.percentage+'%)' : ''}</td>
+      <td style="padding:8px;border:1px solid #e2e8f0;text-align:right;">${fmt(s.amount)} ${currency}${ind}</td>
       <td style="padding:8px;border:1px solid #e2e8f0;font-size:11px;color:#475569;">${s.reason || ''}</td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
+
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Miqdaar Faraid — ${displayName}</title>
     <style>
       body{font-family:system-ui,sans-serif;color:#0f172a;max-width:800px;margin:24px auto;padding:0 16px;}
@@ -728,8 +813,9 @@ function openWarasatPdf(result, input, currency) {
     <strong>Net estate:</strong> ${fmt(result.netEstate)} ${currency}<br>
     <strong>Methodology:</strong> ${result.methodology}<br>
     <strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+    ${treeHtml}
     <table>
-      <thead><tr><th>Heir</th><th>Share</th><th>Amount</th><th>Why (evidence / rule)</th></tr></thead>
+      <thead><tr><th>Heir</th><th>Share</th><th>Amount</th><th>Why (rule / evidence)</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
     ${(result.notes||[]).map(n => `<p style="font-size:12px;color:#92400e;">${n}</p>`).join('')}
@@ -744,7 +830,52 @@ function openWarasatPdf(result, input, currency) {
   w.document.close();
 }
 
-// ——— OTHER PAGES (compact) ———
+function openZakatPdf(result, input) {
+  const fmt = n => n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  const b = result.breakdown || {};
+  const currency = result.currency || state.currency;
+  const title = [input.reportTitle, input.reportName].filter(Boolean).join(' ') || '—';
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Miqdaar Zakat — ${title}</title>
+    <style>
+      body{font-family:system-ui,sans-serif;color:#0f172a;max-width:720px;margin:24px auto;padding:0 16px;}
+      .brand{position:fixed;top:12px;right:16px;font-size:11px;color:#0f766e;font-weight:600;}
+      h1{color:#0f766e;font-size:1.35rem;margin:0 0 4px;}
+      table{width:100%;border-collapse:collapse;margin:16px 0;}
+      th,td{padding:8px;border:1px solid #e2e8f0;font-size:13px;}
+      th{background:#f0fdfa;text-align:left;}
+      .total{font-size:1.4rem;font-weight:700;color:#0f766e;}
+      .disc{font-size:11px;color:#64748b;margin-top:20px;border-top:1px solid #e2e8f0;padding-top:12px;}
+      @media print{.no-print{display:none;}}
+    </style></head><body>
+    <div class="brand">miqdaar.online</div>
+    <h1>Miqdaar — Zakat Report</h1>
+    <p style="margin:0;color:#64748b;font-size:13px;">Educational calculation — not a fatwa</p>
+    <p style="margin:12px 0 0;"><strong>Prepared for:</strong> ${title}<br>
+    <strong>Methodology:</strong> ${result.methodology}<br>
+    <strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+    <table>
+      <tr><th>Item</th><th style="text-align:right;">Amount (${currency})</th></tr>
+      <tr><td>Eligible assets (gross)</td><td style="text-align:right;">${fmt(b.gross)}</td></tr>
+      <tr><td>Deductions (debts / liabilities)</td><td style="text-align:right;">${fmt(b.debtsDeducted)}</td></tr>
+      <tr><td>Net zakatable wealth</td><td style="text-align:right;"><strong>${fmt(b.netZakatable)}</strong></td></tr>
+      <tr><td>Gold Nisab</td><td style="text-align:right;">${fmt(b.goldNisabValue)}</td></tr>
+      <tr><td>Silver Nisab</td><td style="text-align:right;">${fmt(b.silverNisabValue)}</td></tr>
+      <tr><td>Above Nisab?</td><td style="text-align:right;">${b.aboveNisab ? 'Yes' : 'No'}</td></tr>
+      <tr><td>Rate</td><td style="text-align:right;">2.5% (1/40)</td></tr>
+      <tr><td class="total">Estimated Zakat due</td><td class="total" style="text-align:right;">${fmt(b.zakatDue)} ${currency}</td></tr>
+    </table>
+    ${(result.warnings||[]).map(w => `<p style="font-size:12px;color:#b45309;">⚠ ${w.message || w}</p>`).join('')}
+    <div class="disc">${DISCLAIMER.en}<br><br>Rules v${result.rulesVersion} · Generated by Miqdaar · https://miqdaar.online</div>
+    <p class="no-print" style="margin-top:24px;"><button onclick="window.print()" style="padding:10px 20px;background:#0f766e;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">Print / Save as PDF</button></p>
+    <script>setTimeout(()=>window.print(),400)</script>
+    </body></html>`;
+  const w = window.open('', '_blank');
+  if (!w) { alert('Please allow pop-ups to download the PDF.'); return; }
+  w.document.write(html);
+  w.document.close();
+}
+
+
 function renderLearn(el) {
   el.innerHTML = `<div class="space-y-4 max-w-xl mx-auto"><h1 class="text-xl font-bold">Learning Center</h1>
     <div class="space-y-2">${['What is Zakat?','Who must pay Zakat?','What is Nisab?','What is Hawl?','Gold & Silver Zakat','Zakat recipients (9:60)','Common Zakat mistakes','What is Faraid?','Fixed shares (Ashab al-Furud)','Residuary heirs (Asabah)','Hajb (blocking)','Common Warasat mistakes'].map(title => `

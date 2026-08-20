@@ -442,11 +442,92 @@ function calculateHanafi(h, netEstate) {
     }
   }
 
+
+  // Expand residuary groups into individual male/female lines (Quran 4:11 — son = 2 × daughter)
+  const expanded = [];
+  for (const s of shares) {
+    if (s.isResiduary && s.ratio && (s.sons > 0 || s.daughters > 0) && s.fraction != null) {
+      const units = s.sons * s.ratio.male + s.daughters * s.ratio.female;
+      if (units > 0 && s.sons > 0) {
+        const sonUnitFrac = (s.fraction * s.ratio.male) / units;
+        const perSon = sonUnitFrac; // each son
+        expanded.push({
+          heir: s.sons === 1 ? 'Son' : `Sons (${s.sons})`,
+          count: s.sons,
+          fraction: sonUnitFrac * s.sons,
+          amount: netEstate * sonUnitFrac * s.sons,
+          individualAmount: netEstate * sonUnitFrac,
+          reason: s.sons === 1
+            ? `Son receives twice a daughter's share as residuary (Quran 4:11). Individual: ${(sonUnitFrac*100).toFixed(2)}% of estate.`
+            : `Each son receives twice a daughter's share (Quran 4:11). ${s.sons} sons share ${(sonUnitFrac*s.sons*100).toFixed(2)}% of estate (${(sonUnitFrac*100).toFixed(2)}% each).`,
+          evidence: '4:11',
+          gender: 'male',
+          role: 'son'
+        });
+      }
+      if (units > 0 && s.daughters > 0) {
+        const dauUnitFrac = (s.fraction * s.ratio.female) / units;
+        expanded.push({
+          heir: s.daughters === 1 ? 'Daughter' : `Daughters (${s.daughters})`,
+          count: s.daughters,
+          fraction: dauUnitFrac * s.daughters,
+          amount: netEstate * dauUnitFrac * s.daughters,
+          individualAmount: netEstate * dauUnitFrac,
+          reason: s.daughters === 1
+            ? `Daughter receives half of a son's share as residuary (Quran 4:11). Individual: ${(dauUnitFrac*100).toFixed(2)}% of estate.`
+            : `Each daughter receives half of a son's share (Quran 4:11). ${s.daughters} daughters share ${(dauUnitFrac*s.daughters*100).toFixed(2)}% of estate (${(dauUnitFrac*100).toFixed(2)}% each).`,
+          evidence: '4:11',
+          gender: 'female',
+          role: 'daughter'
+        });
+      }
+    } else if (s.isResiduary && s.ratio && (s.brothers > 0 || s.sisters > 0) && s.fraction != null) {
+      const units = (s.brothers || 0) * s.ratio.male + (s.sisters || 0) * s.ratio.female;
+      if (units > 0 && s.brothers > 0) {
+        const u = (s.fraction * s.ratio.male) / units;
+        expanded.push({
+          heir: s.brothers === 1 ? 'Brother' : `Brothers (${s.brothers})`,
+          count: s.brothers,
+          fraction: u * s.brothers,
+          amount: netEstate * u * s.brothers,
+          individualAmount: netEstate * u,
+          reason: 'Each brother receives twice a sister\'s share as residuary.',
+          evidence: s.evidence || '4:176',
+          gender: 'male',
+          role: 'brother'
+        });
+      }
+      if (units > 0 && s.sisters > 0) {
+        const u = (s.fraction * s.ratio.female) / units;
+        expanded.push({
+          heir: s.sisters === 1 ? 'Sister' : `Sisters (${s.sisters})`,
+          count: s.sisters,
+          fraction: u * s.sisters,
+          amount: netEstate * u * s.sisters,
+          individualAmount: netEstate * u,
+          reason: 'Each sister receives half of a brother\'s share as residuary.',
+          evidence: s.evidence || '4:176',
+          gender: 'female',
+          role: 'sister'
+        });
+      }
+    } else {
+      expanded.push(s);
+    }
+  }
+  shares.length = 0;
+  shares.push(...expanded);
+
   // Compute final amounts precisely
   shares.forEach(s => {
     if (s.fraction != null) {
       s.amount = Math.round(netEstate * s.fraction * 100) / 100;
       s.percentage = Math.round(s.fraction * 10000) / 100;
+      if (s.count > 1 && s.individualAmount == null) {
+        s.individualAmount = Math.round((s.amount / s.count) * 100) / 100;
+      } else if (s.individualAmount != null) {
+        s.individualAmount = Math.round(s.individualAmount * 100) / 100;
+      }
     }
   });
 
