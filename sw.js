@@ -1,4 +1,4 @@
-const CACHE = 'miqdaar-v1.3';
+const CACHE = 'miqdaar-v1.4';
 const ASSETS = ['/', '/index.html', '/css/app.css', '/js/app.js', '/manifest.json'];
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));

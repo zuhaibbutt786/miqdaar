@@ -33,7 +33,18 @@ function setLang(lang) {
   localStorage.setItem('miqdaar_lang', lang);
   document.documentElement.lang = lang === 'ur' ? 'ur' : 'en';
   document.documentElement.dir = lang === 'ur' ? 'rtl' : 'ltr';
+  applyChromeI18n();
   render();
+}
+
+function applyChromeI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    if (val && val !== key) el.textContent = val;
+  });
+  const langBtn = document.getElementById('lang-btn');
+  if (langBtn) langBtn.textContent = state.lang === 'en' ? 'EN' : state.lang === 'ur' ? 'اردو' : 'RU';
 }
 
 const routes = {
@@ -47,6 +58,7 @@ const routes = {
   '/settings': renderSettings,
   '/disclaimer': renderDisclaimer,
   '/more': renderMore,
+  '/blog': renderBlog,
   '/madhhab': renderMadhhabSelect
 };
 
@@ -56,6 +68,7 @@ function navigate(path) { location.hash = path; }
 window.addEventListener('hashchange', render);
 window.addEventListener('DOMContentLoaded', () => {
   if (!state.madhhab) navigate('/madhhab');
+  applyChromeI18n();
   render();
   setupUI();
 });
@@ -198,7 +211,7 @@ function renderHome(el) {
   el.innerHTML = `
     <div class="space-y-6 lg:space-y-8">
       <div class="text-center pt-2">
-        <img src="/icons/logo.png" alt="Miqdaar Logo" class="logo-hero mb-4" />
+        <img src="/icons/logo-192.png" alt="Miqdaar Logo" class="logo-hero mb-4" />
         <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">${t('home.hero')}</h1>
         <p class="mt-2 text-slate-600 text-sm sm:text-base max-w-md mx-auto">${t('home.subtitle')}</p>
         <p class="mt-1 text-xs text-primary-600 font-medium">Simple calculations. Clear evidence. Respect for every madhhab.</p>
@@ -228,12 +241,18 @@ function renderHome(el) {
         <a href="#/evidence" class="inline-block mt-3 text-sm font-medium text-primary-700">Read full verse →</a>
       </div>
 
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <a href="#/evidence" class="card-interactive p-4 text-center"><div class="text-2xl mb-1">📖</div><div class="text-xs sm:text-sm font-medium">Quran & Hadith</div></a>
-        <a href="#/learn" class="card-interactive p-4 text-center"><div class="text-2xl mb-1">🎓</div><div class="text-xs sm:text-sm font-medium">Learn</div></a>
-        <a href="#/glossary" class="card-interactive p-4 text-center"><div class="text-2xl mb-1">📚</div><div class="text-xs sm:text-sm font-medium">Glossary</div></a>
-        <a href="#/history" class="card-interactive p-4 text-center"><div class="text-2xl mb-1">📋</div><div class="text-xs sm:text-sm font-medium">History</div></a>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <a href="#/evidence" class="card-interactive p-4 text-center"><div class="text-2xl mb-1">📖</div><div class="text-xs sm:text-sm font-medium">${t('home.quranHadith')}</div></a>
+        <a href="#/learn" class="card-interactive p-4 text-center"><div class="text-2xl mb-1">🎓</div><div class="text-xs sm:text-sm font-medium">${t('nav.learn')}</div></a>
+        <a href="#/blog" class="card-interactive p-4 text-center"><div class="text-2xl mb-1">📝</div><div class="text-xs sm:text-sm font-medium">${t('nav.blog')}</div></a>
+        <a href="#/glossary" class="card-interactive p-4 text-center"><div class="text-2xl mb-1">📚</div><div class="text-xs sm:text-sm font-medium">${t('nav.glossary')}</div></a>
+        <a href="#/history" class="card-interactive p-4 text-center"><div class="text-2xl mb-1">📋</div><div class="text-xs sm:text-sm font-medium">${t('nav.history')}</div></a>
+        <a href="#/settings" class="card-interactive p-4 text-center"><div class="text-2xl mb-1">⚙️</div><div class="text-xs sm:text-sm font-medium">${t('nav.settings')}</div></a>
       </div>
+      <a href="#/blog" class="card p-4 border-primary-100 bg-primary-50/50 block">
+        <div class="font-semibold text-primary-800">${t('home.blog')}</div>
+        <p class="text-sm text-slate-600 mt-1">${t('home.blogDesc')}</p>
+      </a>
 
       <p class="text-xs text-center text-slate-400">${t('disclaimer.short')}</p>
     </div>`;
@@ -249,7 +268,7 @@ function renderMadhhabSelect(el) {
   el.innerHTML = `
     <div class="space-y-6 max-w-lg mx-auto">
       <div class="text-center">
-        <img src="/icons/logo.png" alt="" class="w-16 h-16 mx-auto rounded-full object-cover mb-3" />
+        <img src="/icons/logo-192.png" alt="" class="w-16 h-16 mx-auto rounded-full object-cover mb-3" />
         <h1 class="text-xl font-bold">${t('madhhab.title')}</h1>
         <p class="mt-2 text-sm text-slate-600">${t('madhhab.explain')}</p>
       </div>
@@ -968,15 +987,193 @@ function renderDisclaimer(el) {
     <p>This is an educational calculator. It does not issue fatwas. Calculations are deterministic. Always verify important matters with a qualified scholar.</p></div></div>`;
 }
 
-function renderMore(el) {
-  el.innerHTML = `<div class="space-y-2 max-w-xl mx-auto"><h1 class="text-xl font-bold mb-4">More</h1>
-    <a href="#/glossary" class="card-interactive p-4 block">📚 Glossary</a>
-    <a href="#/history" class="card-interactive p-4 block">📋 History</a>
-    <a href="#/settings" class="card-interactive p-4 block">⚙️ Settings</a>
-    <a href="#/disclaimer" class="card-interactive p-4 block">⚠️ Disclaimer</a>
-    <a href="#/madhhab" class="card-interactive p-4 block">🕌 Change Methodology</a></div>`;
+
+function renderBlog(el) {
+  const ur = state.lang === 'ur';
+  const sections = [
+    {
+      title: ur ? 'روزہ سے متعلق حساب' : 'Fasting-related calculations',
+      items: ur ? [
+        ['فدیہ', 'ہر چھوٹی ہوئی روزے کے بدلے مسکین کو کھانا کھلانا (بیماری/بڑھاپا)۔ نرخ مقامی کھانے پر منحصر۔'],
+        ['قضا', 'رمضان کے بعد کتنی قضا باقی ہیں۔'],
+        ['کفارہ (عمداً روزہ توڑنا)', 'ساٹھ مسکینوں کو کھلانا یا ساٹھ دن روزے — فدیہ سے الگ۔']
+      ] : [
+        ['Fidya', 'Feed a poor person for each missed fast (chronic illness/elderly). Local food cost varies.'],
+        ['Qada', 'How many make-up fasts remain after Ramadan.'],
+        ['Kaffarah (deliberate breaking)', 'Feed 60 poor or fast 60 days — not the same as fidya.']
+      ]
+    },
+    {
+      title: ur ? 'صدقۃ الفطر (فطرانہ)' : 'Sadaqat al-Fitr (Fitrana)',
+      items: ur ? [
+        ['مقدار', 'گیہوں/جو/کھجور کے مساوی یا نقد۔'],
+        ['کون ادا کرے', 'خود اور زیر کفالت میں افراد۔'],
+        ['وقت', 'عید کی نماز سے پہلے — بعد میں اختلاف۔']
+      ] : [
+        ['Amount', 'Wheat/barley/dates equivalent or cash.'],
+        ['Who pays', 'Self and dependents.'],
+        ['Timing', 'Before Eid prayer — after is disputed.']
+      ]
+    },
+    {
+      title: ur ? 'قربانی / أضحیہ' : 'Qurbani / Udhiyah',
+      items: ur ? [
+        ['بڑے جانور کے حصے', 'گائے/اونٹ = ۷ حصے۔'],
+        ['گھرانا', 'ایک جانور پورے گھر کے لیے کافی ہے یا نہیں — مذہب پر منحصر۔'],
+        ['ایام', '۱۰–۱۲/۱۳ ذوالحجہ۔']
+      ] : [
+        ['Large animal shares', 'Cow/camel = 7 shares.'],
+        ['Household', 'Whether one animal covers the family — madhhab-dependent.'],
+        ['Days', '10–12/13 Dhul-Hijjah.']
+      ]
+    },
+    {
+      title: ur ? 'حق مہر' : 'Haq Mehr (dower)',
+      items: ur ? [
+        ['معجل / مؤجل', 'فوری بمقابلہ مؤخر مہر۔'],
+        ['قدرت', 'سالوں بعد سونے/نقد کی موجودہ قیمت۔'],
+        ['طلاق/وفات', 'ادا نہ ہونے پر دعویٰ۔']
+      ] : [
+        ['Prompt vs deferred', 'Mu‘ajjal vs mu’ajjal.'],
+        ['Valuation', 'Gold/cash value years later.'],
+        ['Divorce/death', 'Claims when unpaid.']
+      ]
+    },
+    {
+      title: ur ? 'طلاق سے متعلق اعداد' : 'Divorce-related numbers',
+      items: ur ? [
+        ['عدّت', 'حیض/مہینے/حمل کے مطابق مدت۔'],
+        ['نفقہ', 'عدّت کے دوران خرچ۔'],
+        ['خلع', 'مہر کی واپسی یا معاوضہ۔']
+      ] : [
+        ['Iddah', 'Waiting period by cycles, months, or pregnancy.'],
+        ['Maintenance', 'Nafaqah during iddah.'],
+        ['Khula', 'Return of mehr or agreed compensation.']
+      ]
+    },
+    {
+      title: ur ? 'کفارہ (کفارے)' : 'Kaffarah (expiations)',
+      items: ur ? [
+        ['قسم توڑنا', 'دس مسکینوں کو کھلانا/کپڑا، یا تین دن روزے۔'],
+        ['ظہار', 'بھاری کفارہ۔'],
+        ['احرام کی خلاف ورزی', 'دم، روزہ، یا کھانا — جرم کے مطابق۔']
+      ] : [
+        ['Broken oath', 'Feed/clothe 10 poor, or fast 3 days.'],
+        ['Zihar', 'Heavy kaffarah.'],
+        ['Ihram violations', 'Dam, fasting, or feeding — by offense.']
+      ]
+    },
+    {
+      title: ur ? 'دیت و قصاص' : 'Diyah & Qisas',
+      items: ur ? [
+        ['مکمل/جزوی دیت', 'قتل یا چوٹ کے جدول۔'],
+        ['ادائیگی', 'قسطوں میں یا یکمشت۔'],
+        ['وصول کنندہ', 'مقتول کے وارث۔']
+      ] : [
+        ['Full vs partial diyah', 'Homicide or injury schedules.'],
+        ['Payment', 'Lump sum or installments.'],
+        ['Recipients', 'Heirs of the victim.']
+      ]
+    },
+    {
+      title: ur ? 'نماز و سفر' : 'Prayer & travel',
+      items: ur ? [
+        ['قصر', 'سفر کی کم از کم مسافت (تقریباً ۷۷–۸۹ کلومیٹر)۔'],
+        ['اوقات', 'فجر/عشاء کے زاویے؛ قطبی علاقے۔'],
+        ['قضا نمازیں', 'سالوں کی چھوٹی نمازوں کا شمار۔']
+      ] : [
+        ['Qasr', 'Minimum travel distance (~77–89 km by school).'],
+        ['Prayer times', 'Fajr/Isha angles; polar regions.'],
+        ['Missed prayers', 'Counting qada over years.']
+      ]
+    },
+    {
+      title: ur ? 'سود کی تطہیر' : 'Riba purification',
+      items: ur ? [
+        ['بینک سود', 'حاصل شدہ سود خیرات میں دینا — بطور زکوٰۃ نہیں۔'],
+        ['مخلوط منافع', 'کتنا حصہ ناپاک ہے۔'],
+        ['انشورنس/جرمانہ', 'روایتی ادائیگیاں۔']
+      ] : [
+        ['Bank interest', 'Dispose interest received — not as optional sadaqah in the same way.'],
+        ['Mixed profit', 'How much is impure.'],
+        ['Insurance/penalties', 'Conventional payouts.']
+      ]
+    },
+    {
+      title: ur ? 'کاروبار و عقود' : 'Business & contracts',
+      items: ur ? [
+        ['مضاربہ/مشارکہ', 'منافع فیصد ہونا چاہیے، صرف سرمایہ پر مقررہ منافع نہیں۔'],
+        ['مرابہہ', 'لاگت کی وضاحت + جائز منافع۔'],
+        ['تاخیر فیس', 'جرمانہ بمقابلہ خیراتی وعدہ۔']
+      ] : [
+        ['Mudarabah/musharakah', 'Profit ratios as % of profit, not fixed return on capital only.'],
+        ['Murabaha', 'Cost disclosure + valid markup.'],
+        ['Late fees', 'Penalty vs charitable commitment.']
+      ]
+    },
+    {
+      title: ur ? 'وقف و نذر' : 'Waqf & vows (nadhr)',
+      items: ur ? [
+        ['نذر', 'جانور، روزے، یا رقم کی تکمیل۔'],
+        ['وقف کی آمدن', 'مستحقین میں تقسیم۔'],
+        ['نقد وقف', 'اصل محفوظ، منافع خرچ۔']
+      ] : [
+        ['Nadhr', 'Fulfilling animal, fasting, or money vows.'],
+        ['Waqf income', 'Distribution to beneficiaries.'],
+        ['Cash waqf', 'Principal preserved; returns spent.']
+      ]
+    },
+    {
+      title: ur ? 'علماء کیا دیکھتے ہیں' : 'What ulama often deal with',
+      items: ur ? [
+        ['مذہب کے بغیر ایک عدد', 'ایپس جو فدیہ/کفارہ ایک ہی نمبر دیتی ہیں۔'],
+        ['مقامی قانون vs فقہ', 'پاکستانی عائلی قانون اور کلاسیکی فقہ کا اختلاط۔'],
+        ['قربانی پیکجز', '۷ حصوں کے قواعد سے مطابقت نہیں۔'],
+        ['سود کی لیبلنگ', 'بینک واضح نہیں کرتے؛ لوگ کم/زیادہ دیتے ہیں۔']
+      ] : [
+        ['One number, no madhhab', 'Apps that give a single fidya/kaffarah figure.'],
+        ['Local law vs fiqh', 'Mixing Pakistani family law with classical fiqh without saying so.'],
+        ['Qurbani packages', 'Not matching real 7-share rules.'],
+        ['Interest labeling', 'Banks unclear; users under- or over-dispose.']
+      ]
+    }
+  ];
+
+  el.innerHTML = `
+    <div class="space-y-6 max-w-2xl mx-auto">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold text-slate-900">${t('blog.title')}</h1>
+        <p class="mt-1 text-sm text-slate-600">${t('blog.subtitle')}</p>
+        <p class="mt-3 text-sm text-slate-700 leading-relaxed">${t('blog.intro')}</p>
+        <p class="mt-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-3">${t('blog.notFatwa')}</p>
+      </div>
+      ${sections.map(s => `
+        <section class="card p-4 sm:p-5">
+          <h2 class="font-semibold text-primary-800 text-base mb-3">${s.title}</h2>
+          <ul class="space-y-3">
+            ${s.items.map(([h, p]) => `
+              <li class="border-b border-slate-100 last:border-0 pb-2 last:pb-0">
+                <div class="font-medium text-sm text-slate-900">${h}</div>
+                <p class="text-sm text-slate-600 mt-0.5 leading-relaxed">${p}</p>
+              </li>`).join('')}
+          </ul>
+        </section>`).join('')}
+      <p class="text-xs text-center text-slate-400 pb-4">${t('disclaimer.short')}</p>
+    </div>`;
 }
 
+function renderMore(el) {
+  el.innerHTML = `<div class="space-y-2 max-w-xl mx-auto"><h1 class="text-xl font-bold mb-4">${t('nav.more')}</h1>
+    <a href="#/blog" class="card-interactive p-4 block">📝 ${t('nav.blog')}</a>
+    <a href="#/glossary" class="card-interactive p-4 block">📚 ${t('nav.glossary')}</a>
+    <a href="#/history" class="card-interactive p-4 block">📋 ${t('nav.history')}</a>
+    <a href="#/settings" class="card-interactive p-4 block">⚙️ ${t('nav.settings')}</a>
+    <a href="#/disclaimer" class="card-interactive p-4 block">⚠️ ${t('common.notFatwa')}</a>
+    <a href="#/madhhab" class="card-interactive p-4 block">🕌 ${t('common.madhhab')}</a>
+    <a href="#/learn" class="card-interactive p-4 block">🎓 ${t('nav.learn')}</a>
+    <a href="#/evidence" class="card-interactive p-4 block">📖 ${t('nav.evidence')}</a>
+  </div>`;
+}
 function saveHistory(entry) {
   state.history.push({ ...entry, at: Date.now() });
   if (state.history.length > 50) state.history.shift();
